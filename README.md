@@ -23,7 +23,7 @@ The wake/sleep URLs are simply called "wake" and sleep".  Here's a simple exampl
  ]
 ```
 
-The iMac now shows up as a switch the Home app, and it can be woken or slept directly from there.
+The iMac now shows up as a switch the Home app, and it can be woken or slept directly from there.  It will also show the current display sleep status.
 
 ## Features
 
