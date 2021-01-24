@@ -1,0 +1,638 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 52;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA7EFF1C25B3492100F78037 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF1B25B3492100F78037 /* AppDelegate.swift */; };
+		AA7EFF1E25B3492100F78037 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF1D25B3492100F78037 /* ContentView.swift */; };
+		AA7EFF2025B3492400F78037 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA7EFF1F25B3492400F78037 /* Assets.xcassets */; };
+		AA7EFF2325B3492400F78037 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA7EFF2225B3492400F78037 /* Preview Assets.xcassets */; };
+		AA7EFF2625B3492400F78037 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA7EFF2425B3492400F78037 /* Main.storyboard */; };
+		AA7EFF3225B3492400F78037 /* AutoOfficeDaemonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF3125B3492400F78037 /* AutoOfficeDaemonTests.swift */; };
+		AA7EFF3D25B3492400F78037 /* AutoOfficeDaemonUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF3C25B3492400F78037 /* AutoOfficeDaemonUITests.swift */; };
+		AA7EFF5A25B35D7200F78037 /* AODStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF5925B35D7200F78037 /* AODStore.swift */; };
+		AA7EFF7A25B3A1D000F78037 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = AA7EFF7925B3A1D000F78037 /* Swifter */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA7EFF2E25B3492400F78037 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA7EFF1025B3492100F78037 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA7EFF1725B3492100F78037;
+			remoteInfo = AutoOfficeDaemon;
+		};
+		AA7EFF3925B3492400F78037 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA7EFF1025B3492100F78037 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA7EFF1725B3492100F78037;
+			remoteInfo = AutoOfficeDaemon;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		AA7EFF1825B3492100F78037 /* AutoOfficeDaemon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoOfficeDaemon.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA7EFF1B25B3492100F78037 /* AppDelegate.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; tabWidth = 4; };
+		AA7EFF1D25B3492100F78037 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AA7EFF1F25B3492400F78037 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA7EFF2225B3492400F78037 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		AA7EFF2525B3492400F78037 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		AA7EFF2725B3492400F78037 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA7EFF2825B3492400F78037 /* AutoOfficeDaemon.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AutoOfficeDaemon.entitlements; sourceTree = "<group>"; };
+		AA7EFF2D25B3492400F78037 /* AutoOfficeDaemonTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AutoOfficeDaemonTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA7EFF3125B3492400F78037 /* AutoOfficeDaemonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoOfficeDaemonTests.swift; sourceTree = "<group>"; };
+		AA7EFF3325B3492400F78037 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA7EFF3825B3492400F78037 /* AutoOfficeDaemonUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AutoOfficeDaemonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA7EFF3C25B3492400F78037 /* AutoOfficeDaemonUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoOfficeDaemonUITests.swift; sourceTree = "<group>"; };
+		AA7EFF3E25B3492400F78037 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA7EFF5925B35D7200F78037 /* AODStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AODStore.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA7EFF1525B3492100F78037 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA7EFF7A25B3A1D000F78037 /* Swifter in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA7EFF2A25B3492400F78037 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA7EFF3525B3492400F78037 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA7EFF0F25B3492100F78037 = {
+			isa = PBXGroup;
+			children = (
+				AA7EFF1A25B3492100F78037 /* AutoOfficeDaemon */,
+				AA7EFF3025B3492400F78037 /* AutoOfficeDaemonTests */,
+				AA7EFF3B25B3492400F78037 /* AutoOfficeDaemonUITests */,
+				AA7EFF1925B3492100F78037 /* Products */,
+			);
+			indentWidth = 4;
+			sourceTree = "<group>";
+			tabWidth = 4;
+		};
+		AA7EFF1925B3492100F78037 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA7EFF1825B3492100F78037 /* AutoOfficeDaemon.app */,
+				AA7EFF2D25B3492400F78037 /* AutoOfficeDaemonTests.xctest */,
+				AA7EFF3825B3492400F78037 /* AutoOfficeDaemonUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AA7EFF1A25B3492100F78037 /* AutoOfficeDaemon */ = {
+			isa = PBXGroup;
+			children = (
+				AA7EFF1B25B3492100F78037 /* AppDelegate.swift */,
+				AA7EFF1D25B3492100F78037 /* ContentView.swift */,
+				AA7EFF5925B35D7200F78037 /* AODStore.swift */,
+				AA7EFF1F25B3492400F78037 /* Assets.xcassets */,
+				AA7EFF2425B3492400F78037 /* Main.storyboard */,
+				AA7EFF2725B3492400F78037 /* Info.plist */,
+				AA7EFF2825B3492400F78037 /* AutoOfficeDaemon.entitlements */,
+				AA7EFF2125B3492400F78037 /* Preview Content */,
+			);
+			path = AutoOfficeDaemon;
+			sourceTree = "<group>";
+		};
+		AA7EFF2125B3492400F78037 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				AA7EFF2225B3492400F78037 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		AA7EFF3025B3492400F78037 /* AutoOfficeDaemonTests */ = {
+			isa = PBXGroup;
+			children = (
+				AA7EFF3125B3492400F78037 /* AutoOfficeDaemonTests.swift */,
+				AA7EFF3325B3492400F78037 /* Info.plist */,
+			);
+			path = AutoOfficeDaemonTests;
+			sourceTree = "<group>";
+		};
+		AA7EFF3B25B3492400F78037 /* AutoOfficeDaemonUITests */ = {
+			isa = PBXGroup;
+			children = (
+				AA7EFF3C25B3492400F78037 /* AutoOfficeDaemonUITests.swift */,
+				AA7EFF3E25B3492400F78037 /* Info.plist */,
+			);
+			path = AutoOfficeDaemonUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA7EFF1725B3492100F78037 /* AutoOfficeDaemon */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA7EFF4125B3492400F78037 /* Build configuration list for PBXNativeTarget "AutoOfficeDaemon" */;
+			buildPhases = (
+				AA7EFF1425B3492100F78037 /* Sources */,
+				AA7EFF1525B3492100F78037 /* Frameworks */,
+				AA7EFF1625B3492100F78037 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AutoOfficeDaemon;
+			packageProductDependencies = (
+				AA7EFF7925B3A1D000F78037 /* Swifter */,
+			);
+			productName = AutoOfficeDaemon;
+			productReference = AA7EFF1825B3492100F78037 /* AutoOfficeDaemon.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AA7EFF2C25B3492400F78037 /* AutoOfficeDaemonTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA7EFF4425B3492400F78037 /* Build configuration list for PBXNativeTarget "AutoOfficeDaemonTests" */;
+			buildPhases = (
+				AA7EFF2925B3492400F78037 /* Sources */,
+				AA7EFF2A25B3492400F78037 /* Frameworks */,
+				AA7EFF2B25B3492400F78037 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA7EFF2F25B3492400F78037 /* PBXTargetDependency */,
+			);
+			name = AutoOfficeDaemonTests;
+			productName = AutoOfficeDaemonTests;
+			productReference = AA7EFF2D25B3492400F78037 /* AutoOfficeDaemonTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		AA7EFF3725B3492400F78037 /* AutoOfficeDaemonUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA7EFF4725B3492400F78037 /* Build configuration list for PBXNativeTarget "AutoOfficeDaemonUITests" */;
+			buildPhases = (
+				AA7EFF3425B3492400F78037 /* Sources */,
+				AA7EFF3525B3492400F78037 /* Frameworks */,
+				AA7EFF3625B3492400F78037 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA7EFF3A25B3492400F78037 /* PBXTargetDependency */,
+			);
+			name = AutoOfficeDaemonUITests;
+			productName = AutoOfficeDaemonUITests;
+			productReference = AA7EFF3825B3492400F78037 /* AutoOfficeDaemonUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA7EFF1025B3492100F78037 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1230;
+				LastUpgradeCheck = 1230;
+				TargetAttributes = {
+					AA7EFF1725B3492100F78037 = {
+						CreatedOnToolsVersion = 12.3;
+					};
+					AA7EFF2C25B3492400F78037 = {
+						CreatedOnToolsVersion = 12.3;
+						TestTargetID = AA7EFF1725B3492100F78037;
+					};
+					AA7EFF3725B3492400F78037 = {
+						CreatedOnToolsVersion = 12.3;
+						TestTargetID = AA7EFF1725B3492100F78037;
+					};
+				};
+			};
+			buildConfigurationList = AA7EFF1325B3492100F78037 /* Build configuration list for PBXProject "AutoOfficeDaemon" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA7EFF0F25B3492100F78037;
+			packageReferences = (
+				AA7EFF7825B3A1D000F78037 /* XCRemoteSwiftPackageReference "swifter" */,
+			);
+			productRefGroup = AA7EFF1925B3492100F78037 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA7EFF1725B3492100F78037 /* AutoOfficeDaemon */,
+				AA7EFF2C25B3492400F78037 /* AutoOfficeDaemonTests */,
+				AA7EFF3725B3492400F78037 /* AutoOfficeDaemonUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA7EFF1625B3492100F78037 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA7EFF2625B3492400F78037 /* Main.storyboard in Resources */,
+				AA7EFF2325B3492400F78037 /* Preview Assets.xcassets in Resources */,
+				AA7EFF2025B3492400F78037 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA7EFF2B25B3492400F78037 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA7EFF3625B3492400F78037 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA7EFF1425B3492100F78037 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA7EFF1E25B3492100F78037 /* ContentView.swift in Sources */,
+				AA7EFF1C25B3492100F78037 /* AppDelegate.swift in Sources */,
+				AA7EFF5A25B35D7200F78037 /* AODStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA7EFF2925B3492400F78037 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA7EFF3225B3492400F78037 /* AutoOfficeDaemonTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA7EFF3425B3492400F78037 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA7EFF3D25B3492400F78037 /* AutoOfficeDaemonUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA7EFF2F25B3492400F78037 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA7EFF1725B3492100F78037 /* AutoOfficeDaemon */;
+			targetProxy = AA7EFF2E25B3492400F78037 /* PBXContainerItemProxy */;
+		};
+		AA7EFF3A25B3492400F78037 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA7EFF1725B3492100F78037 /* AutoOfficeDaemon */;
+			targetProxy = AA7EFF3925B3492400F78037 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		AA7EFF2425B3492400F78037 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AA7EFF2525B3492400F78037 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		AA7EFF3F25B3492400F78037 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA7EFF4025B3492400F78037 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		AA7EFF4225B3492400F78037 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AutoOfficeDaemon/AutoOfficeDaemon.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"AutoOfficeDaemon/Preview Content\"";
+				DEVELOPMENT_TEAM = 9259PET5M4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = AutoOfficeDaemon/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				PRODUCT_BUNDLE_IDENTIFIER = joeangell.AutoOfficeDaemon;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		AA7EFF4325B3492400F78037 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AutoOfficeDaemon/AutoOfficeDaemon.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"AutoOfficeDaemon/Preview Content\"";
+				DEVELOPMENT_TEAM = 9259PET5M4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = AutoOfficeDaemon/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				PRODUCT_BUNDLE_IDENTIFIER = joeangell.AutoOfficeDaemon;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		AA7EFF4525B3492400F78037 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 9259PET5M4;
+				INFOPLIST_FILE = AutoOfficeDaemonTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				PRODUCT_BUNDLE_IDENTIFIER = joeangell.AutoOfficeDaemonTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AutoOfficeDaemon.app/Contents/MacOS/AutoOfficeDaemon";
+			};
+			name = Debug;
+		};
+		AA7EFF4625B3492400F78037 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 9259PET5M4;
+				INFOPLIST_FILE = AutoOfficeDaemonTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				PRODUCT_BUNDLE_IDENTIFIER = joeangell.AutoOfficeDaemonTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AutoOfficeDaemon.app/Contents/MacOS/AutoOfficeDaemon";
+			};
+			name = Release;
+		};
+		AA7EFF4825B3492400F78037 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 9259PET5M4;
+				INFOPLIST_FILE = AutoOfficeDaemonUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = joeangell.AutoOfficeDaemonUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = AutoOfficeDaemon;
+			};
+			name = Debug;
+		};
+		AA7EFF4925B3492400F78037 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 9259PET5M4;
+				INFOPLIST_FILE = AutoOfficeDaemonUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = joeangell.AutoOfficeDaemonUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = AutoOfficeDaemon;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA7EFF1325B3492100F78037 /* Build configuration list for PBXProject "AutoOfficeDaemon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA7EFF3F25B3492400F78037 /* Debug */,
+				AA7EFF4025B3492400F78037 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA7EFF4125B3492400F78037 /* Build configuration list for PBXNativeTarget "AutoOfficeDaemon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA7EFF4225B3492400F78037 /* Debug */,
+				AA7EFF4325B3492400F78037 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA7EFF4425B3492400F78037 /* Build configuration list for PBXNativeTarget "AutoOfficeDaemonTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA7EFF4525B3492400F78037 /* Debug */,
+				AA7EFF4625B3492400F78037 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA7EFF4725B3492400F78037 /* Build configuration list for PBXNativeTarget "AutoOfficeDaemonUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA7EFF4825B3492400F78037 /* Debug */,
+				AA7EFF4925B3492400F78037 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AA7EFF7825B3A1D000F78037 /* XCRemoteSwiftPackageReference "swifter" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/httpswift/swifter";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA7EFF7925B3A1D000F78037 /* Swifter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA7EFF7825B3A1D000F78037 /* XCRemoteSwiftPackageReference "swifter" */;
+			productName = Swifter;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = AA7EFF1025B3492100F78037 /* Project object */;
+}

@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "AOD-StatusBar-Idle.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
