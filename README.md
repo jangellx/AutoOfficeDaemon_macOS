@@ -1,7 +1,7 @@
 # AutoOfficeDaemon_macOS
  
 Latest version of my AutoOfficeDaemon.  Written in Swift using SwiftUI for configuration, and using [Swifter](https://github.com/jmcarpenter2/swifter) for the HTTP server.  It requires macOS 11.1 for certain SwiftUI features, and since it was just for me I didn't bother to add compatibility for older operating systems.
-[Details about the setup can be found on my site](http://www.tmproductions.com/projects-blog/2021/1/24/auto-office-through-homekit}.
+[Details about the setup can be found on my site](http://www.tmproductions.com/projects-blog/2021/1/24/auto-office-through-homekit).
 
 The daemon's job is twofold:
 - Listen for display wake and sleep events from macOS and report them to a report machine using the HTTP protocol defined by [homebridge-http-webhooks](https://www.npmjs.com/package/homebridge-http-webhooks).
