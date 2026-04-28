@@ -6,10 +6,11 @@
 //
 
 import Foundation
-import Swifter
+@preconcurrency import Swifter
 import SwiftUI
+import IOKit.ps
 
-class AODStore : ObservableObject {
+class AODStore: ObservableObject, @unchecked Sendable {
 	// MARK: - Singleton
 	static let _SingletonSharedInstance = AODStore()
 	class var shared : AODStore {
@@ -32,13 +33,15 @@ class AODStore : ObservableObject {
 				reportToPort = 51931
 			}
 
-			reportAccessoryName = UserDefaults.standard.string( forKey: "ReportAccessoryName" ) ?? "Macintosh"
+			reportAccessoryName         = UserDefaults.standard.string( forKey: "ReportAccessoryName" ) ?? "Macintosh"
 
 			waitBeforeReportingSleep    = UserDefaults.standard.bool(    forKey: "WaitBeforeReportingSleep"    )
 			secondsBeforeReportingSleep = UserDefaults.standard.integer( forKey: "SecondsBeforeReportingSleep" )
 
 			respondToSleepRequest       = UserDefaults.standard.bool(    forKey: "RespondToSleepRequest"       )
 			respondToWakeRequest        = UserDefaults.standard.bool(    forKey: "RespondToWakeRequest"        )
+
+			onlyActWhenPluggedIn        = UserDefaults.standard.bool(    forKey: "OnlyActWhenPluggedIn"        )
  		}
 	}
 
@@ -94,15 +97,21 @@ class AODStore : ObservableObject {
 		}
 	}
 
-	@Published var respondToSleepRequest    : Bool = true {		// Toggle if we should sleep when requested
+	@Published var respondToSleepRequest    : Bool = true {			// Toggle if we should sleep when requested
 		didSet {
 			UserDefaults.standard.set( respondToSleepRequest, forKey: "RespondToSleepRequest" )
 		}
 	}
 
-	@Published var respondToWakeRequest    : Bool = true {		// Toggle if we should wake when requested
+	@Published var respondToWakeRequest    : Bool = true {			// Toggle if we should wake when requested
 		didSet {
 			UserDefaults.standard.set( respondToWakeRequest, forKey: "RespondToWakeRequest" )
+		}
+	}
+
+	@Published var onlyActWhenPluggedIn    : Bool = true {			// Toggle if we should react to wake/sleep events when plugged in
+		didSet {
+			UserDefaults.standard.set( onlyActWhenPluggedIn, forKey: "OnlyActWhenPluggedIn" )
 		}
 	}
 
@@ -117,19 +126,38 @@ class AODStore : ObservableObject {
 		if !enabled && !force {
 			return
 		}
-
+		
 		// Only do something if we're not already in that state
 		if isAwake == !goToSleep {
 			return;
 		}
+		
+		/* This doesn't work on M1 machines, so we just call the command line too pmset to do it for us.
+		 Feels hacky, but it is what it is.
+		 
+		 let reg    = IORegistryEntryFromPath(kIOMainPortDefault, "IOService:/IOResources/IODisplayWrangler")
+		 let entry  = "IORequestIdle" as CFString
+		 
+		 let result = IORegistryEntrySetCFProperty( reg, entry, goToSleep ? kCFBooleanTrue : kCFBooleanFalse );
+		 IOObjectRelease(reg);
+		 
+		 print( "sleep/wake result: \(result) (\(result == KERN_SUCCESS ? "success" : "error" ))" )
+		 */
+		
+		let task = Process()
+		task.launchPath = "/usr/bin/env"
 
-		let reg   = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/IOResources/IODisplayWrangler")
-		let entry = "IORequestIdle" as CFString
+		if goToSleep {
+			task.arguments = ["pmset", "displaysleepnow" ]			// Turn off
+		} else {
+			task.arguments = ["caffeinate", "-u", "-t", "60" ]		// Turn on.  Timeout of one minute; setting it too short causes us to go back to sleep again
+		}
 
-		IORegistryEntrySetCFProperty( reg, entry, goToSleep ? kCFBooleanTrue : kCFBooleanFalse );
-		IOObjectRelease(reg);
+		task.launch()
+		task.waitUntilExit()
+
+		print( "sleep/wake result: \(task.terminationStatus) (\(task.terminationStatus == 0 ? "success" : "error" ))" )
 	}
-
 
     // Mark as asleep, then arm the timer to actually send the sleep event
     public func sleepStateChanged( isNowAwake: Bool ) {
@@ -137,9 +165,9 @@ class AODStore : ObservableObject {
 
         if isAwake {
             // For awake, we send immediately and clear the sleep report timer
-			reportSleepState()
             timer?.invalidate()				// Stop the timer
             timer = nil;					// Clear it to empty
+			reportSleepState()
 
         } else {
             // Arm the timer
@@ -180,28 +208,65 @@ class AODStore : ObservableObject {
 		let url  = URL( string: "http://\(reportToAddress):\(reportToPort)/?accessoryId=\(reportAccessoryName)&state=\(isAwake ? "true" : "false")")!
 		print( "Calling remote with URL:  \(url)")
 		let task = URLSession.shared.dataTask(with: url) { data, response, error in
-			guard let httpResponse = response as? HTTPURLResponse,
-				(200...299).contains(httpResponse.statusCode) else {
-				// HTTP response error
-				if response != nil {
-					self.statusString = "Error: Invalid HTTPURLResponse from report: \(response!)"
-				} else {
-					self.statusString = "Error: Invalid HTTPURLResponse from report:  (no information available)"
+			DispatchQueue.main.async {
+				guard let httpResponse = response as? HTTPURLResponse,
+					(200...299).contains(httpResponse.statusCode) else {
+					// HTTP response error
+					if response != nil {
+						self.statusString = "Error: Invalid HTTPURLResponse from report: \(response!)"
+					} else {
+						self.statusString = "Error: Invalid HTTPURLResponse from report:  (no information available)"
+					}
+					print( self.statusString! )
+					return
 				}
-
-				print( self.statusString! );
-				return
+				self.statusString = nil
 			}
-
-			self.statusString = nil
 		}
 		task.resume()
 	}
 
+	// Check to see if the device even has an internal battery.
+	// https://developer.apple.com/forums/thread/712711
+	var hasInternalBattery : Bool {
+		guard
+			let psi = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
+			let cf  = IOPSCopyPowerSourcesList(psi)?.takeRetainedValue()
+		else { return false }
+
+		let psl = cf as [CFTypeRef]
+		for ps in psl {
+			guard let cfd = IOPSGetPowerSourceDescription(psi, ps)?.takeUnretainedValue() else { return false }
+
+			let d = cfd as! [String: Any]
+			guard let psTypeStr = d[kIOPSTypeKey] as? String else { return false }
+
+			if psTypeStr == kIOPSInternalBatteryType {
+				return true
+			}
+		}
+    
+		return false
+	}
+
+	// Check to see if the device has an internal battery and is plugged into it.  Devices without a battery will
+	// always return true.  We also assume we're plugged in if any error occurs.
+	var isPluggedIn : Bool {
+		if !hasInternalBattery {
+			return true
+		}
+
+		guard let type = IOPSGetProvidingPowerSourceType( nil )?.takeRetainedValue() else {
+			return true;
+		}
+
+		return (type as String) != kIOPMBatteryPowerKey
+	}
+
 	// MARK: - HTTP Server via Swifter
 	// Manage the HTTP Server
-	var httpServer   : HttpServer?									// THe instance of our Swifter server
-	var statusString : String?										// Used to report errors to the user
+	var httpServer        : HttpServer?								// THe instance of our Swifter server
+	@Published var statusString : String?							// Used to report errors to the user; @Published so SwiftUI re-renders on change
 
 	var isServerRunning : Bool {
 		return httpServer != nil && (httpServer?.state == .starting || httpServer?.state == .running)
@@ -212,6 +277,7 @@ class AODStore : ObservableObject {
 	// Stop the HTTP server
 	func StopHTTPServer() {
 		statusString = nil
+		stopHealthCheck()
 		if !isServerRunning {
 			return;
 		}
@@ -221,9 +287,31 @@ class AODStore : ObservableObject {
 		isServerListening = false
 	}
 
+	// Periodically verify the server is still running; restart it if it has stopped unexpectedly.
+	// Must be called from the main thread (timer is scheduled on the main RunLoop).
+	func startHealthCheck() {
+		healthCheckTimer?.invalidate()
+		healthCheckTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+			guard let self = self, self.enabled else { return }
+			if !self.isServerRunning {
+				self.isServerListening = false
+				if self.restartTimer == nil {
+					self.statusString = "HTTP Server stopped unexpectedly; restarting..."
+					self.StartHTTPServer(restartIfRunning: false)
+				}
+			}
+		}
+	}
+
+	func stopHealthCheck() {
+		healthCheckTimer?.invalidate()
+		healthCheckTimer = nil
+	}
+
 	// Start the HTTP server in anothet thread
 	var didAppFinishLaunching : Bool = false						// True once the app finishes launching (as set by the app delegate)
 	var restartTimer          : Timer?								// If we fail to start, we automatically try again in 10 seconds with this timer
+	var healthCheckTimer      : Timer?								// Periodically verifies the server is still running and restarts it if not
 	func StartHTTPServer( restartIfRunning: Bool ) {
 		if !didAppFinishLaunching {
 			return;
@@ -249,7 +337,7 @@ class AODStore : ObservableObject {
 			restartTimer = nil
 		}
 
-		// Star the server ina  thread
+		// Start the server in a thread
 		statusString = nil
 		DispatchQueue.global(qos: .utility).async { [unowned self] in
 			do {
@@ -262,53 +350,54 @@ class AODStore : ObservableObject {
 
 				server["/status"] = { _ in
 					print( "status" )
-					return .ok( .json(  ["isAwake":isAwakeAsInt] ) )
+					return .ok( .json(  ["isAwake":self.isAwakeAsInt] ) )
 				}
 
 				server["/wake"] = { _ in
 					if !self.respondToWakeRequest {
 						print( "wake; ignored per user setting" )
+					} else if self.onlyActWhenPluggedIn && !self.isPluggedIn {
+						print( "wake: ignored per user setting when not plugged in" )
 					} else {
 						print( "wake" )
-						sleepDisplay( false )
+						self.sleepDisplay( false )
 					}
 
-					return .ok( .json(  ["isAwake":isAwakeAsInt] ) )
+					return .ok( .json(  ["isAwake":self.isAwakeAsInt] ) )
 				}
 
 				server["/sleep"] = { _ in
 					if !self.respondToSleepRequest {
 						print( "sleep; ignored per user setting" )
+					} else if self.onlyActWhenPluggedIn && !self.isPluggedIn {
+						print( "sleep: ignored per user setting when not plugged in" )
 					} else {
 						print( "sleep" )
-						sleepDisplay( true )
+						self.sleepDisplay( true )
 					}
 
-					return .ok( .json(  ["isAwake":isAwakeAsInt] ) )
+					return .ok( .json(  ["isAwake":self.isAwakeAsInt] ) )
 				}
 
-				try httpServer?.start( UInt16( listenPort ), forceIPv4: true )
+				try httpServer?.start( UInt16( min( listenPort, 65535 ) ), forceIPv4: true )
 				DispatchQueue.main.async {
-					isServerListening = true
+					self.statusString      = nil
+					self.isServerListening = true
+					self.startHealthCheck()
 				}
 
 			} catch {
-				// Error
-				statusString       = "HTTP Server Startup Error: \(error.localizedDescription)"
-				httpServer         = nil
-
+				httpServer = nil
 				DispatchQueue.main.async {
-					isServerListening = false
-				}
-				
-				// Try again in 10 seconds
-				restartTimer = Timer.scheduledTimer( withTimeInterval: 10.0, repeats: false ) { _ in
-					if !self.isServerRunning {
-						return;
+					self.statusString      = "HTTP Server Startup Error: \(error.localizedDescription)"
+					self.isServerListening = false
+					self.restartTimer = Timer.scheduledTimer( withTimeInterval: 10.0, repeats: false ) { _ in
+						if self.isServerRunning {
+							return
+						}
+						self.StartHTTPServer( restartIfRunning: false )
+						self.restartTimer = nil
 					}
-
-					self.StartHTTPServer( restartIfRunning: false )
-					self.restartTimer = nil
 				}
 			}
 		}

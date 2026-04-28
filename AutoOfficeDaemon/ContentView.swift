@@ -84,7 +84,7 @@ struct ContentView: View {
 					.padding( .leading, 10 )
 
 
-				// Connections
+				// Options
 				Spacer()
 					.frame( height: 20 )
 				HStack {
@@ -110,8 +110,19 @@ struct ContentView: View {
 
 							Toggle( "Respond to Sleep Requests", isOn: $aodStore.respondToSleepRequest )
 								.help( "When true, sleep requests received by remote clients will cause this machine's display to sleep." )
+
 							Toggle( "Respond to Wake Requests",  isOn: $aodStore.respondToWakeRequest  )
 								.help( "When true, sleep requests received by remote clients will cause this machine's display to wake." )
+
+							Toggle( "Act only when plugged in", isOn: $aodStore.onlyActWhenPluggedIn )
+								.help( "When true, sleep and wake requests are only acted on when the device is plugged into an external power source.  Only applies when the an internal battery is available" )
+								.disabled( !aodStore.hasInternalBattery )
+								
+							HStack {
+								Spacer()
+									.frame( width: 30 )
+								Text( "Currenty\(aodStore.isPluggedIn ? "" : " not" ) plugged in.")
+							}
 						}
 					}
 				}

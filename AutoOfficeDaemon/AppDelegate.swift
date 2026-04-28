@@ -18,7 +18,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	var statusBarItem: NSStatusItem!
 	
 	let aodStore:      AODStore = AODStore.shared																		// Initialize and hold onto an instance of our store
-	var isServerListeningCanceller : AnyCancellable?																		// We have to hold onto this or else our sink() will stop working
+	var isServerListeningCanceller : AnyCancellable?																	// We have to hold onto this or else our sink() will stop working
+	var backgroundActivity : NSObjectProtocol?																			// Prevents macOS from automatically terminating the process when idle
 
 	func applicationDidFinishLaunching(_ aNotification: Notification) {
 		if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {									// Don't create the status bar icon if we're just running previews in Xcode, or it keeps stealing the focus
@@ -31,18 +32,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 			button.image = NSImage(named: "AOD-StatusBar-Idle")
 			button.action = #selector(TogglePopover(_:))
 
-			isServerListeningCanceller = aodStore.$isServerListening																			// Listen for chagnes to the server state
+			isServerListeningCanceller = aodStore.$isServerListening													// Listen for chagnes to the server state
 				.sink {
 					self.UpdateStatusIcon( isListening: $0 )
 				}
 		}
 
-		NSApp.activate(ignoringOtherApps: true)
-
 		// Listen for wake/sleep notifications
 		NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector( sleepListener(_:) ), name: NSWorkspace.screensDidSleepNotification, object: nil)
 		NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector( sleepListener(_:) ), name: NSWorkspace.screensDidWakeNotification,  object: nil)
 		
+		// Hold a background activity assertion so macOS does not automatically terminate this process when idle
+		backgroundActivity = ProcessInfo.processInfo.beginActivity(
+			options: [.automaticTerminationDisabled, .suddenTerminationDisabled, .background],
+			reason: "AutoOfficeDaemon must run continuously to monitor display state and serve HTTP requests"
+		)
+
 		// Try to start the server
 		aodStore.didAppFinishLaunching = true
 		aodStore.StartHTTPServer( restartIfRunning: false )
@@ -74,7 +79,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 					// Create the popover that will host our UI
 					popover = NSPopover()
-					popover?.contentSize           = NSSize(width: 500, height: 500)
+					popover?.contentSize           = NSSize(width: 500, height: 520)
 					popover?.behavior              = .transient
 					popover?.contentViewController = NSHostingController(rootView: contentView)
 				}
