@@ -15,7 +15,6 @@
 		AA7EFF3225B3492400F78037 /* AutoOfficeDaemonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF3125B3492400F78037 /* AutoOfficeDaemonTests.swift */; };
 		AA7EFF3D25B3492400F78037 /* AutoOfficeDaemonUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF3C25B3492400F78037 /* AutoOfficeDaemonUITests.swift */; };
 		AA7EFF5A25B35D7200F78037 /* AODStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF5925B35D7200F78037 /* AODStore.swift */; };
-		AA7EFF7A25B3A1D000F78037 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = AA7EFF7925B3A1D000F78037 /* Swifter */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,7 +57,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA7EFF7A25B3A1D000F78037 /* Swifter in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,7 +157,6 @@
 			);
 			name = AutoOfficeDaemon;
 			packageProductDependencies = (
-				AA7EFF7925B3A1D000F78037 /* Swifter */,
 			);
 			productName = AutoOfficeDaemon;
 			productReference = AA7EFF1825B3492100F78037 /* AutoOfficeDaemon.app */;
@@ -234,7 +231,6 @@
 			);
 			mainGroup = AA7EFF0F25B3492100F78037;
 			packageReferences = (
-				AA7EFF7825B3A1D000F78037 /* XCRemoteSwiftPackageReference "swifter" */,
 			);
 			productRefGroup = AA7EFF1925B3492100F78037 /* Products */;
 			projectDirPath = "";
@@ -621,25 +617,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		AA7EFF7825B3A1D000F78037 /* XCRemoteSwiftPackageReference "swifter" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/httpswift/swifter";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		AA7EFF7925B3A1D000F78037 /* Swifter */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AA7EFF7825B3A1D000F78037 /* XCRemoteSwiftPackageReference "swifter" */;
-			productName = Swifter;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AA7EFF1025B3492100F78037 /* Project object */;
 }

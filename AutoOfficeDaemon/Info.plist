@@ -28,5 +28,7 @@
 	<string>NSApplication</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>AutoOfficeDaemon communicates with home automation hubs on your local network to report display sleep and wake state.</string>
 </dict>
 </plist>

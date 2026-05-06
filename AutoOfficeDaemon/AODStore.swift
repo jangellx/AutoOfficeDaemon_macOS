@@ -6,9 +6,21 @@
 //
 
 import Foundation
-@preconcurrency import Swifter
+import Network
 import SwiftUI
 import IOKit.ps
+
+struct LogEntry: Identifiable {
+	let id      = UUID()
+	let date    : Date
+	let message : String
+	let isError : Bool
+}
+
+struct InboundRequest {
+	let path : String
+	let date : Date
+}
 
 class AODStore: ObservableObject, @unchecked Sendable {
 	// MARK: - Singleton
@@ -46,7 +58,6 @@ class AODStore: ObservableObject, @unchecked Sendable {
 	}
 
 	// MARK: - Settings
-	// Settings
 	@Published var enabled         : Bool    = true {				// Enable toggle, which also starts/stops the HTTP server
 		didSet {
 			UserDefaults.standard.set( enabled, forKey: "Enabled" )
@@ -78,7 +89,7 @@ class AODStore: ObservableObject, @unchecked Sendable {
 			UserDefaults.standard.set( reportToPort, forKey: "ReportToPort" )
 		}
 	}
-	
+
 	@Published var reportAccessoryName: String = "Macintosh" {		// Accessory name used as part of the URL
 		didSet {
 			UserDefaults.standard.set( reportAccessoryName, forKey: "ReportAccessoryName" )
@@ -115,35 +126,125 @@ class AODStore: ObservableObject, @unchecked Sendable {
 		}
 	}
 
+	private let launchAgentPlistPath = "~/Library/LaunchAgents/com.tmproductions.AutoOfficeDaemon.plist"
+	@Published var launchAgentIsLoaded : Bool = false
+
+	func checkLaunchAgentStatus() async {
+		let expanded = (launchAgentPlistPath as NSString).expandingTildeInPath
+		let label    = URL(fileURLWithPath: expanded).deletingPathExtension().lastPathComponent
+		let uid      = "\(getuid())"
+		let exit     = (try? await spawnProcess("/bin/launchctl", ["print", "gui/\(uid)/\(label)"])) ?? 1
+		await MainActor.run { launchAgentIsLoaded = exit == 0 }
+	}
+
+	func toggleLaunchAgent() {
+		Task {
+			let expanded = (launchAgentPlistPath as NSString).expandingTildeInPath
+			let uid      = "\(getuid())"
+
+			if !launchAgentIsLoaded {
+				if !FileManager.default.fileExists(atPath: expanded) {
+					do {
+						try createLaunchAgentPlist(at: expanded)
+					} catch {
+						appendLog("Failed to create LaunchAgent plist: \(error.localizedDescription)", isError: true)
+						return
+					}
+				}
+				var bootstrapOK = false
+				do {
+					let exit = try await spawnProcess("/bin/launchctl", ["bootstrap", "gui/\(uid)", expanded])
+					if exit != 0 { appendLog("launchctl bootstrap exited \(exit)", isError: true) }
+					else         { bootstrapOK = true }
+				} catch {
+					appendLog("launchctl bootstrap: \(error.localizedDescription)", isError: true)
+				}
+				// Launchd now owns a new instance; quit this one so there aren't two copies running.
+				if bootstrapOK {
+					await MainActor.run { NSApplication.shared.terminate(nil) }
+				}
+			} else {
+				// Bootout sends SIGTERM to the launchd-managed process (which may be us).
+				// No need to checkLaunchAgentStatus afterwards — we'll be gone.
+				do {
+					let exit = try await spawnProcess("/bin/launchctl", ["bootout", "gui/\(uid)", expanded])
+					if exit != 0 { appendLog("launchctl bootout exited \(exit)", isError: true) }
+				} catch {
+					appendLog("launchctl bootout: \(error.localizedDescription)", isError: true)
+				}
+			}
+		}
+	}
+
+	func unloadAgentIfNeeded() async {
+		guard launchAgentIsLoaded else { return }
+		let expanded = (launchAgentPlistPath as NSString).expandingTildeInPath
+		let uid      = "\(getuid())"
+		do {
+			let exit = try await spawnProcess("/bin/launchctl", ["bootout", "gui/\(uid)", expanded])
+			if exit != 0 { appendLog("launchctl bootout exited \(exit)", isError: true) }
+		} catch {
+			appendLog("launchctl bootout: \(error.localizedDescription)", isError: true)
+		}
+	}
+
+	private func createLaunchAgentPlist(at path: String) throws {
+		let label    = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+		let execPath = Bundle.main.executablePath ?? ""
+
+		let dict: [String: Any] = [
+			"Label":            label,
+			"ProgramArguments": [execPath],
+			"RunAtLoad":        true,
+			"KeepAlive":        true
+		]
+
+		let dir = URL(fileURLWithPath: path).deletingLastPathComponent().path
+		try FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+
+		let data = try PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0)
+		try data.write(to: URL(fileURLWithPath: path))
+	}
+
+	private func spawnProcess(_ path: String, _ args: [String]) async throws -> Int32 {
+		try await withCheckedThrowingContinuation { cont in
+			let task = Process()
+			task.launchPath = path
+			task.arguments  = args
+			task.terminationHandler = { p in cont.resume(returning: p.terminationStatus) }
+			do    { try task.run() }
+			catch { cont.resume(throwing: error) }
+		}
+	}
+
 	// MARK: - Sleep/Wake Handling
-	// Indicate if the display is currently awake or asleep
 	var isAwake      : Bool = true
 	var isAwakeAsInt : Int { isAwake ? 1  : 0 }
 
-	// Sleep or wake the diaplsy.  "force" is mostly for the "Sleep Display Now" button; most clients respect
+	// Sleep or wake the display.  "force" is mostly for the "Sleep Display Now" button; most clients respect
 	//  the enable state and leave it at false.
 	func sleepDisplay( _ goToSleep: Bool , force: Bool = false ) {
 		if !enabled && !force {
 			return
 		}
-		
+
 		// Only do something if we're not already in that state
 		if isAwake == !goToSleep {
 			return;
 		}
-		
-		/* This doesn't work on M1 machines, so we just call the command line too pmset to do it for us.
+
+		/* This doesn't work on M1 machines, so we just call the command line tool pmset to do it for us.
 		 Feels hacky, but it is what it is.
-		 
+
 		 let reg    = IORegistryEntryFromPath(kIOMainPortDefault, "IOService:/IOResources/IODisplayWrangler")
 		 let entry  = "IORequestIdle" as CFString
-		 
+
 		 let result = IORegistryEntrySetCFProperty( reg, entry, goToSleep ? kCFBooleanTrue : kCFBooleanFalse );
 		 IOObjectRelease(reg);
-		 
+
 		 print( "sleep/wake result: \(result) (\(result == KERN_SUCCESS ? "success" : "error" ))" )
 		 */
-		
+
 		let task = Process()
 		task.launchPath = "/usr/bin/env"
 
@@ -153,10 +254,12 @@ class AODStore: ObservableObject, @unchecked Sendable {
 			task.arguments = ["caffeinate", "-u", "-t", "60" ]		// Turn on.  Timeout of one minute; setting it too short causes us to go back to sleep again
 		}
 
+		// Don't wait for the process — pmset/caffeinate are fire-and-forget.
+		// Calling waitUntilExit() on caffeinate would block the caller for 60 seconds.
+		task.terminationHandler = { t in
+			print( "sleep/wake result: \(t.terminationStatus) (\(t.terminationStatus == 0 ? "success" : "error" ))" )
+		}
 		task.launch()
-		task.waitUntilExit()
-
-		print( "sleep/wake result: \(task.terminationStatus) (\(task.terminationStatus == 0 ? "success" : "error" ))" )
 	}
 
     // Mark as asleep, then arm the timer to actually send the sleep event
@@ -180,7 +283,6 @@ class AODStore: ObservableObject, @unchecked Sendable {
 	// Arm a timer, which we use to send a delayed sleep notification to the remote client
 	func ArmReportTimer() {
 		if timer != nil {
-			// Timer already running; stop it first
             timer?.invalidate()            // Stop the timer
             timer = nil;                   // Clear it to empty
 		}
@@ -190,7 +292,7 @@ class AODStore: ObservableObject, @unchecked Sendable {
 			reportSleepState()
 			return;
 		}
-		
+
 		// Delay defined; arm the timer
 		print( "Arming timer for \(secondsBeforeReportingSleep) seconds to notify remote to sleep" )
 		timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(secondsBeforeReportingSleep), repeats: false) { timer in
@@ -217,6 +319,7 @@ class AODStore: ObservableObject, @unchecked Sendable {
 					} else {
 						self.statusString = "Error: Invalid HTTPURLResponse from report:  (no information available)"
 					}
+					self.appendLog(self.statusString!, isError: true)
 					print( self.statusString! )
 					return
 				}
@@ -245,7 +348,7 @@ class AODStore: ObservableObject, @unchecked Sendable {
 				return true
 			}
 		}
-    
+
 		return false
 	}
 
@@ -263,27 +366,36 @@ class AODStore: ObservableObject, @unchecked Sendable {
 		return (type as String) != kIOPMBatteryPowerKey
 	}
 
-	// MARK: - HTTP Server via Swifter
-	// Manage the HTTP Server
-	var httpServer        : HttpServer?								// THe instance of our Swifter server
+	// MARK: - HTTP Server via Network.framework
+
+	var listener              : NWListener?							// The NWListener for our HTTP server
 	@Published var statusString : String?							// Used to report errors to the user; @Published so SwiftUI re-renders on change
 
 	var isServerRunning : Bool {
-		return httpServer != nil && (httpServer?.state == .starting || httpServer?.state == .running)
+		switch listener?.state {
+		case .ready, .waiting:
+			return true
+		default:
+			return false
+		}
 	}
 
-	@Published var isServerListening : Bool = false					// Used to report to clients (mostly the app delegate) when the server is conencted or not.
+	@Published var isServerListening  : Bool = false				// Used to report to clients (mostly the app delegate) when the server is connected or not.
+	@Published var recentLog          : [LogEntry]      = []		// Log of recent errors; shown in the UI
+	@Published var lastInboundRequest : InboundRequest? = nil		// Most recent inbound HTTP request; used for the menu bar tooltip
+	private var pendingRestart        : Bool    = false				// Signals the .cancelled handler to start a new listener once the port is free
 
-	// Stop the HTTP server
+	private let serverQueue = DispatchQueue(label: "com.AutoOfficeDaemon.HTTPServer", qos: .utility)
+
+	// Stop the HTTP server.  listener is nilled in the .cancelled callback rather than here to
+	// avoid an EADDRINUSE race where the new bind fires before the OS releases the port.
 	func StopHTTPServer() {
+		pendingRestart = false			// Explicit stop; don't restart on .cancelled
 		statusString = nil
 		stopHealthCheck()
-		if !isServerRunning {
-			return;
-		}
-
-		httpServer?.stop()
-		httpServer = nil
+		restartTimer?.invalidate()
+		restartTimer = nil
+		listener?.cancel()				// Async; listener = nil deferred to .cancelled callback
 		isServerListening = false
 	}
 
@@ -297,6 +409,7 @@ class AODStore: ObservableObject, @unchecked Sendable {
 				self.isServerListening = false
 				if self.restartTimer == nil {
 					self.statusString = "HTTP Server stopped unexpectedly; restarting..."
+					self.appendLog("HTTP Server stopped unexpectedly; restarting...", isError: true)
 					self.StartHTTPServer(restartIfRunning: false)
 				}
 			}
@@ -308,99 +421,178 @@ class AODStore: ObservableObject, @unchecked Sendable {
 		healthCheckTimer = nil
 	}
 
-	// Start the HTTP server in anothet thread
+	private func appendLog(_ message: String, isError: Bool = false) {
+		let entry = LogEntry(date: Date(), message: message, isError: isError)
+		DispatchQueue.main.async {
+			self.recentLog.insert(entry, at: 0)
+			if self.recentLog.count > 50 {
+				self.recentLog.removeLast()
+			}
+		}
+	}
+
 	var didAppFinishLaunching : Bool = false						// True once the app finishes launching (as set by the app delegate)
 	var restartTimer          : Timer?								// If we fail to start, we automatically try again in 10 seconds with this timer
 	var healthCheckTimer      : Timer?								// Periodically verifies the server is still running and restarts it if not
-	func StartHTTPServer( restartIfRunning: Bool ) {
-		if !didAppFinishLaunching {
-			return;
-		}
 
-		if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-			// Don't run the server we're just running previews in Xcode
+	// NWListener.start() is async/callback-driven, so no background thread is needed here.
+	func StartHTTPServer( restartIfRunning: Bool ) {
+		if !didAppFinishLaunching { return }
+		if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" { return }
+
+		// If any listener still exists (even mid-cancellation), don't try to bind the same port yet.
+		// For a restart, signal .cancelled to call StartHTTPServer again once the port is released.
+		if listener != nil {
+			if restartIfRunning {
+				pendingRestart = true
+				stopHealthCheck()
+				isServerListening = false
+				listener?.cancel()			// .cancelled callback will call StartHTTPServer again
+			}
 			return
 		}
 
-		// Handle what to do if the server is running
-		if isServerRunning {
-			if restartIfRunning {
-				StopHTTPServer()
-			} else {
-				return
-			}
-		}
+		pendingRestart = false
+		restartTimer?.invalidate()
+		restartTimer = nil
+		statusString  = nil
 
-		// Stop the restart timer
-		if restartTimer != nil {
-			restartTimer?.invalidate()
-			restartTimer = nil
-		}
+		do {
+			let params = NWParameters.tcp
+			params.allowLocalEndpointReuse = true
+			let portValue   = UInt16(min(max(listenPort, 1), 65535))
+			let port        = NWEndpoint.Port(rawValue: portValue)!
+			let newListener = try NWListener(using: params, on: port)
+			listener        = newListener
 
-		// Start the server in a thread
-		statusString = nil
-		DispatchQueue.global(qos: .utility).async { [unowned self] in
-			do {
-				let server = HttpServer()
-				httpServer = server;
-				
-				server["/"] = { _ in
-					.ok( .htmlBody("AutoOfficeDaemon now running.") )
-				}
-
-				server["/status"] = { _ in
-					print( "status" )
-					return .ok( .json(  ["isAwake":self.isAwakeAsInt] ) )
-				}
-
-				server["/wake"] = { _ in
-					if !self.respondToWakeRequest {
-						print( "wake; ignored per user setting" )
-					} else if self.onlyActWhenPluggedIn && !self.isPluggedIn {
-						print( "wake: ignored per user setting when not plugged in" )
-					} else {
-						print( "wake" )
-						self.sleepDisplay( false )
-					}
-
-					return .ok( .json(  ["isAwake":self.isAwakeAsInt] ) )
-				}
-
-				server["/sleep"] = { _ in
-					if !self.respondToSleepRequest {
-						print( "sleep; ignored per user setting" )
-					} else if self.onlyActWhenPluggedIn && !self.isPluggedIn {
-						print( "sleep: ignored per user setting when not plugged in" )
-					} else {
-						print( "sleep" )
-						self.sleepDisplay( true )
-					}
-
-					return .ok( .json(  ["isAwake":self.isAwakeAsInt] ) )
-				}
-
-				try httpServer?.start( UInt16( min( listenPort, 65535 ) ), forceIPv4: true )
+			newListener.stateUpdateHandler = { [weak self, weak newListener] state in
 				DispatchQueue.main.async {
-					self.statusString      = nil
-					self.isServerListening = true
-					self.startHealthCheck()
-				}
-
-			} catch {
-				httpServer = nil
-				DispatchQueue.main.async {
-					self.statusString      = "HTTP Server Startup Error: \(error.localizedDescription)"
-					self.isServerListening = false
-					self.restartTimer = Timer.scheduledTimer( withTimeInterval: 10.0, repeats: false ) { _ in
-						if self.isServerRunning {
-							return
+					guard let self = self, let newListener = newListener else { return }
+					guard self.listener === newListener else { return }		// Ignore callbacks from replaced listeners
+					switch state {
+					case .ready:
+						self.statusString      = nil
+						self.isServerListening = true
+						self.startHealthCheck()
+					case .failed(let error):
+						newListener.cancel()
+						self.stopHealthCheck()
+						// Don't nil listener here; .cancelled will do it and schedule the retry
+						self.statusString      = "HTTP Server Error: \(error.localizedDescription)"
+						self.appendLog("HTTP Server Error: \(error.localizedDescription)", isError: true)
+						self.isServerListening = false
+					case .cancelled:
+						self.listener          = nil		// Port is now free
+						self.isServerListening = false
+						let shouldRestart = self.pendingRestart
+						self.pendingRestart = false
+						if shouldRestart {
+							// Immediate restart triggered by a settings change
+							self.StartHTTPServer(restartIfRunning: false)
+						} else if self.statusString != nil, self.enabled, self.restartTimer == nil {
+							// Retry after a failure; statusString was set in .failed
+							self.restartTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { [weak self] _ in
+								guard let self = self, self.listener == nil else { return }
+								self.restartTimer = nil
+								self.StartHTTPServer(restartIfRunning: false)
+							}
 						}
-						self.StartHTTPServer( restartIfRunning: false )
-						self.restartTimer = nil
+					default:
+						break
 					}
+				}
+			}
+
+			newListener.newConnectionHandler = { [weak self] connection in
+				self?.handleConnection(connection)
+			}
+
+			newListener.start(queue: serverQueue)
+
+		} catch {
+			statusString      = "HTTP Server Startup Error: \(error.localizedDescription)"
+			appendLog("HTTP Server Startup Error: \(error.localizedDescription)", isError: true)
+			isServerListening = false
+			if restartTimer == nil {
+				restartTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { [weak self] _ in
+					guard let self = self, self.listener == nil else { return }
+					self.restartTimer = nil
+					self.StartHTTPServer(restartIfRunning: false)
 				}
 			}
 		}
 	}
-}
 
+	// Handle an incoming HTTP connection: read the request, route by path, send a response.
+	private func handleConnection(_ connection: NWConnection) {
+		connection.start(queue: serverQueue)
+		connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, _, error in
+			if let error = error {
+				self?.appendLog("Inbound connection error: \(error.localizedDescription)", isError: true)
+				connection.cancel()
+				return
+			}
+			guard let self = self, let data = data, !data.isEmpty else {
+				connection.cancel()
+				return
+			}
+
+			let request   = String(data: data, encoding: .utf8) ?? ""
+			let firstLine = request.components(separatedBy: "\r\n").first ?? ""
+			let parts     = firstLine.components(separatedBy: " ")
+			let rawPath   = parts.count > 1 ? parts[1] : "/"
+			let path      = rawPath.components(separatedBy: "?").first ?? "/"
+
+			DispatchQueue.main.async {
+				self.lastInboundRequest = InboundRequest(path: path, date: Date())
+			}
+
+			var statusLine  = "200 OK"
+			var contentType = "application/json"
+			var body        : String
+
+			switch path {
+			case "/":
+				contentType = "text/html"
+				body        = "AutoOfficeDaemon now running."
+
+			case "/status":
+				print("status")
+				body = "{\"isAwake\":\(self.isAwakeAsInt)}"
+
+			case "/wake":
+				if !self.respondToWakeRequest {
+					print("wake; ignored per user setting")
+				} else if self.onlyActWhenPluggedIn && !self.isPluggedIn {
+					print("wake: ignored per user setting when not plugged in")
+				} else {
+					print("wake")
+					self.sleepDisplay(false)
+				}
+				body = "{\"isAwake\":\(self.isAwakeAsInt)}"
+
+			case "/sleep":
+				if !self.respondToSleepRequest {
+					print("sleep; ignored per user setting")
+				} else if self.onlyActWhenPluggedIn && !self.isPluggedIn {
+					print("sleep: ignored per user setting when not plugged in")
+				} else {
+					print("sleep")
+					self.sleepDisplay(true)
+				}
+				body = "{\"isAwake\":\(self.isAwakeAsInt)}"
+
+			default:
+				statusLine  = "404 Not Found"
+				contentType = "text/plain"
+				body        = "Not Found"
+			}
+
+			let bodyData     = Data(body.utf8)
+			let responseText = "HTTP/1.1 \(statusLine)\r\nContent-Type: \(contentType)\r\nContent-Length: \(bodyData.count)\r\nConnection: close\r\n\r\n\(body)"
+			connection.send(content: Data(responseText.utf8), completion: .contentProcessed { _ in
+				connection.cancel()
+			})
+		}
+	}
+}

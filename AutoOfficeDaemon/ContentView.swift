@@ -9,8 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
 	@ObservedObject var aodStore = AODStore.shared
-
-    var body: some View {
+	
+	var body: some View {
 		VStack {
 			VStack {
 				ZStack {
@@ -28,34 +28,34 @@ struct ContentView: View {
 						Spacer()
 					}
 				}
-					.frame( height: 80 )
-					.padding(0)
-
+				.frame( height: 80 )
+				.padding(0)
+				
 				HStack {
 					Spacer()
-						Text( "Enable" )
-							.font( .title2 )
-							.bold()
-						Toggle( "Enabled", isOn: $aodStore.enabled )
-							.toggleStyle( SwitchToggleStyle( tint: Color.green ) )
-							.labelsHidden()
-							.frame( height: 40 )
+					Text( "Enable" )
+						.font( .title2 )
+						.bold()
+					Toggle( "Enabled", isOn: $aodStore.enabled )
+						.toggleStyle( SwitchToggleStyle( tint: Color.green ) )
+						.labelsHidden()
+						.frame( height: 40 )
 					Spacer()
 				}
-
-
+				
+				
 				// Connections
 				HStack {
 					Text( "Connections" )
 						.font( .headline )
 					Spacer()
 				}
-
+				
 				VStack {
 					HStack {
 						Text( "Listening port" )
 							.frame( width: 100, alignment: .trailing )
-							
+						
 						TextField( "8182", value: $aodStore.listenPort, formatter: NumberFormatter() )
 							.frame( width: 60 )
 						Spacer()
@@ -71,19 +71,19 @@ struct ContentView: View {
 							.frame( width: 60 )
 						Spacer()
 					}
-
+					
 					HStack {
 						Text( "Accessory ID" )
 							.frame( width: 100, alignment: .trailing )
-							
+						
 						TextField( "Macintosh", text: $aodStore.reportAccessoryName )
 							.frame( width: 200 )
 						Spacer()
 					}
 				}
-					.padding( .leading, 10 )
-
-
+				.padding( .leading, 10 )
+				
+				
 				// Options
 				Spacer()
 					.frame( height: 20 )
@@ -92,12 +92,12 @@ struct ContentView: View {
 						.font( .headline )
 					Spacer()
 				}
-
+				
 				VStack( alignment: .leading ) {
 					HStack {
 						Spacer()
 							.frame( width: 100 )
-
+						
 						VStack( alignment: .leading ) {
 							HStack {
 								Toggle( "Wait", isOn: $aodStore.waitBeforeReportingSleep )
@@ -107,28 +107,30 @@ struct ContentView: View {
 								Text( "seconds before reporting display sleep" )
 								Spacer()
 							}
-
+							
 							Toggle( "Respond to Sleep Requests", isOn: $aodStore.respondToSleepRequest )
 								.help( "When true, sleep requests received by remote clients will cause this machine's display to sleep." )
-
+							
 							Toggle( "Respond to Wake Requests",  isOn: $aodStore.respondToWakeRequest  )
 								.help( "When true, sleep requests received by remote clients will cause this machine's display to wake." )
-
+							
 							Toggle( "Act only when plugged in", isOn: $aodStore.onlyActWhenPluggedIn )
 								.help( "When true, sleep and wake requests are only acted on when the device is plugged into an external power source.  Only applies when the an internal battery is available" )
 								.disabled( !aodStore.hasInternalBattery )
-								
+							
 							HStack {
 								Spacer()
 									.frame( width: 30 )
-								Text( "Currenty\(aodStore.isPluggedIn ? "" : " not" ) plugged in.")
+								Text( aodStore.isPluggedIn ? "● Plugged in" : "● Not plugged in" )
+								.font( .caption )
+								.foregroundColor( aodStore.isPluggedIn ? .green : .secondary )
 							}
 						}
 					}
 				}
-					.padding( .leading, 10 )
-	
-
+				.padding( .leading, 10 )
+				
+				
 				// Utilities
 				Spacer()
 					.frame( height: 20 )
@@ -137,6 +139,26 @@ struct ContentView: View {
 						.font( .headline )
 					Spacer()
 				}
+
+				HStack {
+					Spacer()
+						.frame( width: 100 )
+					Button( action: { aodStore.toggleLaunchAgent() } ) {
+						Text( aodStore.launchAgentIsLoaded ? "Unload Agent" : "Load Agent" )
+							.frame( width: 100 )
+					}
+					.help( aodStore.launchAgentIsLoaded
+						? "Unloads the LaunchAgent. launchd will stop its managed instance."
+						: "Loads the LaunchAgent and quits this instance. launchd takes over from here." )
+					Text( aodStore.launchAgentIsLoaded ? "● Loaded" : "● Not loaded" )
+						.font( .caption )
+						.foregroundColor( aodStore.launchAgentIsLoaded ? .green : .secondary )
+					Spacer()
+				}
+				.padding( .bottom, 6 )
+				
+				Divider()
+					.padding( .horizontal, 40 )
 
 				HStack {
 					Spacer()
@@ -153,24 +175,65 @@ struct ContentView: View {
 
 					// Quit
 					Button(action: {
-						NSApplication.shared.terminate(self)
+						Task {
+							await aodStore.unloadAgentIfNeeded()
+							NSApplication.shared.terminate(nil)
+						}
 					}) {
 						Text( "Quit" )
 							.frame( width: 150 )
 					}
 					Spacer()
 				}
-			}
-				.padding( .leading,  20 )
-				.padding( .trailing, 20 )
 
+
+				// Recent Log
+				Spacer()
+					.frame( height: 20 )
+				HStack {
+					Text( "Recent Log" )
+						.font( .headline )
+					Spacer()
+				}
+
+				if aodStore.recentLog.isEmpty {
+					Text( "No errors logged yet" )
+						.font( .caption )
+						.foregroundColor( .secondary )
+				} else {
+					ScrollView {
+						VStack( alignment: .leading, spacing: 3 ) {
+							ForEach( aodStore.recentLog ) { entry in
+								HStack( alignment: .top, spacing: 6 ) {
+									Text( entry.date, style: .time )
+										.font( .caption.monospacedDigit() )
+										.foregroundColor( .secondary )
+										.frame( width: 65, alignment: .trailing )
+									Text( entry.message )
+										.font( .caption )
+										.foregroundColor( entry.isError ? .red : .primary )
+										.frame( maxWidth: .infinity, alignment: .leading )
+								}
+							}
+						}
+						.padding( 4 )
+					}
+					.frame( height: 100 )
+					.background( Color( NSColor.textBackgroundColor ) )
+					.clipShape( RoundedRectangle( cornerRadius: 4 ) )
+				}
+			}
+			.padding( .leading,  20 )
+			.padding( .trailing, 20 )
+			.onAppear { Task { await aodStore.checkLaunchAgentStatus() } }
+			
 			VStack {
-				ZStack {
+				ZStack( alignment: .top ) {
 					Rectangle()
 						.foregroundColor( Color( red: 0.3, green: 0.5, blue: 0.6 ) )
-						.frame( height: 40 )
+						.frame( height: 60 )
 						.shadow( radius: 10 )
-					HStack {
+					HStack( alignment: .top ) {
 						Text( "Status" )
 							.foregroundColor( .white )
 						Text( aodStore.statusString ?? "OK" )
@@ -178,11 +241,11 @@ struct ContentView: View {
 							.lineLimit( 2 )
 						Spacer()
 					}
-						.padding( 5 )
+					.padding( 5 )
+					.padding( .horizontal, 3 )
 				}
 			}
-				.offset( y: 5 )
-				.padding( 0 )
+			.padding( 0 )
 		}
 	}
 }
@@ -191,6 +254,6 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-			.frame( width: 500, height: 520 )
+			.frame( width: 500 )
     }
 }
