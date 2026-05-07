@@ -175,10 +175,8 @@ struct ContentView: View {
 
 					// Quit
 					Button(action: {
-						Task {
-							await aodStore.unloadAgentIfNeeded()
-							NSApplication.shared.terminate(nil)
-						}
+						aodStore.unloadAgentIfNeeded()
+						NSApplication.shared.terminate(nil)
 					}) {
 						Text( "Quit" )
 							.frame( width: 150 )
@@ -225,7 +223,7 @@ struct ContentView: View {
 			}
 			.padding( .leading,  20 )
 			.padding( .trailing, 20 )
-			.onAppear { Task { await aodStore.checkLaunchAgentStatus() } }
+			.onAppear { aodStore.checkLaunchAgentStatus() }
 			
 			VStack {
 				ZStack( alignment: .top ) {

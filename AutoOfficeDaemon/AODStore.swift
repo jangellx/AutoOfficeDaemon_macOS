@@ -9,6 +9,8 @@ import Foundation
 import Network
 import SwiftUI
 import IOKit.ps
+import IOKit.pwr_mgt
+import ServiceManagement
 
 struct LogEntry: Identifiable {
 	let id      = UUID()
@@ -126,94 +128,40 @@ class AODStore: ObservableObject, @unchecked Sendable {
 		}
 	}
 
-	private let launchAgentPlistPath = "~/Library/LaunchAgents/com.tmproductions.AutoOfficeDaemon.plist"
 	@Published var launchAgentIsLoaded : Bool = false
 
-	func checkLaunchAgentStatus() async {
-		let expanded = (launchAgentPlistPath as NSString).expandingTildeInPath
-		let label    = URL(fileURLWithPath: expanded).deletingPathExtension().lastPathComponent
-		let uid      = "\(getuid())"
-		let exit     = (try? await spawnProcess("/bin/launchctl", ["print", "gui/\(uid)/\(label)"])) ?? 1
-		await MainActor.run { launchAgentIsLoaded = exit == 0 }
+	nonisolated(unsafe) private static let agentService = SMAppService.agent(plistName: "com.tmproductions.AutoOfficeDaemon.plist")
+
+	func checkLaunchAgentStatus() {
+		launchAgentIsLoaded = AODStore.agentService.status == .enabled
 	}
 
 	func toggleLaunchAgent() {
-		Task {
-			let expanded = (launchAgentPlistPath as NSString).expandingTildeInPath
-			let uid      = "\(getuid())"
-
-			if !launchAgentIsLoaded {
-				if !FileManager.default.fileExists(atPath: expanded) {
-					do {
-						try createLaunchAgentPlist(at: expanded)
-					} catch {
-						appendLog("Failed to create LaunchAgent plist: \(error.localizedDescription)", isError: true)
-						return
-					}
-				}
-				var bootstrapOK = false
-				do {
-					let exit = try await spawnProcess("/bin/launchctl", ["bootstrap", "gui/\(uid)", expanded])
-					if exit != 0 { appendLog("launchctl bootstrap exited \(exit)", isError: true) }
-					else         { bootstrapOK = true }
-				} catch {
-					appendLog("launchctl bootstrap: \(error.localizedDescription)", isError: true)
-				}
-				// Launchd now owns a new instance; quit this one so there aren't two copies running.
-				if bootstrapOK {
-					await MainActor.run { NSApplication.shared.terminate(nil) }
-				}
-			} else {
-				// Bootout sends SIGTERM to the launchd-managed process (which may be us).
-				// No need to checkLaunchAgentStatus afterwards — we'll be gone.
-				do {
-					let exit = try await spawnProcess("/bin/launchctl", ["bootout", "gui/\(uid)", expanded])
-					if exit != 0 { appendLog("launchctl bootout exited \(exit)", isError: true) }
-				} catch {
-					appendLog("launchctl bootout: \(error.localizedDescription)", isError: true)
-				}
+		if launchAgentIsLoaded {
+			do {
+				try AODStore.agentService.unregister()
+				launchAgentIsLoaded = false
+			} catch {
+				appendLog("Failed to unregister agent: \(error.localizedDescription)", isError: true)
+			}
+		} else {
+			do {
+				try AODStore.agentService.register()
+				// launchd now owns a new instance; quit so there aren't two copies running.
+				DispatchQueue.main.async { NSApplication.shared.terminate(nil) }
+			} catch {
+				appendLog("Failed to register agent: \(error.localizedDescription)", isError: true)
 			}
 		}
 	}
 
-	func unloadAgentIfNeeded() async {
+	func unloadAgentIfNeeded() {
 		guard launchAgentIsLoaded else { return }
-		let expanded = (launchAgentPlistPath as NSString).expandingTildeInPath
-		let uid      = "\(getuid())"
 		do {
-			let exit = try await spawnProcess("/bin/launchctl", ["bootout", "gui/\(uid)", expanded])
-			if exit != 0 { appendLog("launchctl bootout exited \(exit)", isError: true) }
+			try AODStore.agentService.unregister()
+			launchAgentIsLoaded = false
 		} catch {
-			appendLog("launchctl bootout: \(error.localizedDescription)", isError: true)
-		}
-	}
-
-	private func createLaunchAgentPlist(at path: String) throws {
-		let label    = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
-		let execPath = Bundle.main.executablePath ?? ""
-
-		let dict: [String: Any] = [
-			"Label":            label,
-			"ProgramArguments": [execPath],
-			"RunAtLoad":        true,
-			"KeepAlive":        true
-		]
-
-		let dir = URL(fileURLWithPath: path).deletingLastPathComponent().path
-		try FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-
-		let data = try PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0)
-		try data.write(to: URL(fileURLWithPath: path))
-	}
-
-	private func spawnProcess(_ path: String, _ args: [String]) async throws -> Int32 {
-		try await withCheckedThrowingContinuation { cont in
-			let task = Process()
-			task.launchPath = path
-			task.arguments  = args
-			task.terminationHandler = { p in cont.resume(returning: p.terminationStatus) }
-			do    { try task.run() }
-			catch { cont.resume(throwing: error) }
+			appendLog("Failed to unregister agent: \(error.localizedDescription)", isError: true)
 		}
 	}
 
@@ -245,21 +193,26 @@ class AODStore: ObservableObject, @unchecked Sendable {
 		 print( "sleep/wake result: \(result) (\(result == KERN_SUCCESS ? "success" : "error" ))" )
 		 */
 
-		let task = Process()
-		task.launchPath = "/usr/bin/env"
-
 		if goToSleep {
-			task.arguments = ["pmset", "displaysleepnow" ]			// Turn off
+			let task = Process()
+			task.launchPath = "/usr/bin/env"
+			task.arguments  = ["pmset", "displaysleepnow"]
+			task.terminationHandler = { t in
+				print("displaysleepnow: \(t.terminationStatus == 0 ? "success" : "error")")
+			}
+			task.launch()
 		} else {
-			task.arguments = ["caffeinate", "-u", "-t", "60" ]		// Turn on.  Timeout of one minute; setting it too short causes us to go back to sleep again
+			// Declare remote user activity, which resets the HID idle timer so the system
+			// grants the full configured display-sleep timeout before sleeping again.
+			var assertionID: IOPMAssertionID = 0
+			let result = IOPMAssertionDeclareUserActivity(
+				"AutoOfficeDaemon remote wake" as CFString,
+				kIOPMUserActiveLocal,
+				&assertionID
+			)
+			print("wake result: \(result == kIOReturnSuccess ? "success" : "error")")
 		}
 
-		// Don't wait for the process — pmset/caffeinate are fire-and-forget.
-		// Calling waitUntilExit() on caffeinate would block the caller for 60 seconds.
-		task.terminationHandler = { t in
-			print( "sleep/wake result: \(t.terminationStatus) (\(t.terminationStatus == 0 ? "success" : "error" ))" )
-		}
-		task.launch()
 	}
 
     // Mark as asleep, then arm the timer to actually send the sleep event

@@ -132,12 +132,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-		guard aodStore.launchAgentIsLoaded else { return .terminateNow }
-		Task { [weak self] in
-			await self?.aodStore.unloadAgentIfNeeded()
-			NSApplication.shared.reply(toApplicationShouldTerminate: true)
-		}
-		return .terminateLater
+		aodStore.unloadAgentIfNeeded()
+		return .terminateNow
 	}
 
 	func applicationWillTerminate(_ aNotification: Notification) {
