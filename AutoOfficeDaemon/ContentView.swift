@@ -214,6 +214,7 @@ struct ContentView: View {
 								}
 							}
 						}
+						.textSelection( .enabled )
 						.padding( 4 )
 					}
 					.frame( height: 100 )

@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.tmproductions.AutoOfficeDaemon</string>
+	<string>joeangell.AutoOfficeDaemon.agent</string>
 	<key>BundleProgram</key>
 	<string>Contents/MacOS/AutoOfficeDaemon</string>
 	<key>RunAtLoad</key>

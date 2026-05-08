@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		56E0A2872FACE51E006A77F9 /* com.tmproductions.AutoOfficeDaemon.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 56E0A2842FACDA15006A77F9 /* com.tmproductions.AutoOfficeDaemon.plist */; };
+		56E0A2872FACE51E006A77F9 /* joeangell.AutoOfficeDaemon.agent.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 56E0A2842FACDA15006A77F9 /* joeangell.AutoOfficeDaemon.agent.plist */; };
 		AA7EFF1C25B3492100F78037 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF1B25B3492100F78037 /* AppDelegate.swift */; };
 		AA7EFF1E25B3492100F78037 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7EFF1D25B3492100F78037 /* ContentView.swift */; };
 		AA7EFF2025B3492400F78037 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA7EFF1F25B3492400F78037 /* Assets.xcassets */; };
@@ -42,14 +42,14 @@
 			dstPath = Contents/Library/LaunchAgents;
 			dstSubfolderSpec = 1;
 			files = (
-				56E0A2872FACE51E006A77F9 /* com.tmproductions.AutoOfficeDaemon.plist in CopyFiles */,
+				56E0A2872FACE51E006A77F9 /* joeangell.AutoOfficeDaemon.agent.plist in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		56E0A2842FACDA15006A77F9 /* com.tmproductions.AutoOfficeDaemon.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.tmproductions.AutoOfficeDaemon.plist; sourceTree = "<group>"; };
+		56E0A2842FACDA15006A77F9 /* joeangell.AutoOfficeDaemon.agent.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = joeangell.AutoOfficeDaemon.agent.plist; sourceTree = "<group>"; };
 		AA7EFF1825B3492100F78037 /* AutoOfficeDaemon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoOfficeDaemon.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA7EFF1B25B3492100F78037 /* AppDelegate.swift */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; tabWidth = 4; };
 		AA7EFF1D25B3492100F78037 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -95,7 +95,7 @@
 		56E0A2832FACDA10006A77F9 /* LaunchAgents */ = {
 			isa = PBXGroup;
 			children = (
-				56E0A2842FACDA15006A77F9 /* com.tmproductions.AutoOfficeDaemon.plist */,
+				56E0A2842FACDA15006A77F9 /* joeangell.AutoOfficeDaemon.agent.plist */,
 			);
 			path = LaunchAgents;
 			sourceTree = "<group>";

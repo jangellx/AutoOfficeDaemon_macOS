@@ -10,7 +10,7 @@ import Network
 import SwiftUI
 import IOKit.ps
 import IOKit.pwr_mgt
-import ServiceManagement
+
 
 struct LogEntry: Identifiable {
 	let id      = UUID()
@@ -129,40 +129,85 @@ class AODStore: ObservableObject, @unchecked Sendable {
 	}
 
 	@Published var launchAgentIsLoaded : Bool = false
+	var quittingAfterAgentLoad : Bool = false
 
-	nonisolated(unsafe) private static let agentService = SMAppService.agent(plistName: "com.tmproductions.AutoOfficeDaemon.plist")
+	private static let agentLabel = "joeangell.AutoOfficeDaemon.agent"
+
+	private var agentPlistURL: URL {
+		FileManager.default.homeDirectoryForCurrentUser
+			.appendingPathComponent("Library/LaunchAgents/\(AODStore.agentLabel).plist")
+	}
 
 	func checkLaunchAgentStatus() {
-		launchAgentIsLoaded = AODStore.agentService.status == .enabled
+		launchAgentIsLoaded = FileManager.default.fileExists(atPath: agentPlistURL.path)
 	}
 
 	func toggleLaunchAgent() {
 		if launchAgentIsLoaded {
-			do {
-				try AODStore.agentService.unregister()
-				launchAgentIsLoaded = false
-			} catch {
-				appendLog("Failed to unregister agent: \(error.localizedDescription)", isError: true)
-			}
+			unloadAgent()
 		} else {
-			do {
-				try AODStore.agentService.register()
-				// launchd now owns a new instance; quit so there aren't two copies running.
+			loadAgent()
+		}
+	}
+
+	private func loadAgent() {
+		let executablePath = Bundle.main.executableURL!.path
+
+		let plist: [String: Any] = [
+			"Label":            AODStore.agentLabel,
+			"ProgramArguments": [executablePath],
+			"RunAtLoad":        true,
+			"KeepAlive":        true
+		]
+
+		let launchAgentsDir = FileManager.default.homeDirectoryForCurrentUser
+			.appendingPathComponent("Library/LaunchAgents")
+
+		do {
+			try FileManager.default.createDirectory(at: launchAgentsDir, withIntermediateDirectories: true)
+			let data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+			try data.write(to: agentPlistURL)
+		} catch {
+			appendLog("Failed to write agent plist: \(error.localizedDescription)", isError: true)
+			return
+		}
+
+		let task = Process()
+		task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+		task.arguments = ["load", agentPlistURL.path]
+		do {
+			try task.run()
+			task.waitUntilExit()
+			if task.terminationStatus == 0 {
+				launchAgentIsLoaded = true
+				quittingAfterAgentLoad = true
 				DispatchQueue.main.async { NSApplication.shared.terminate(nil) }
-			} catch {
-				appendLog("Failed to register agent: \(error.localizedDescription)", isError: true)
+			} else {
+				appendLog("launchctl load exited with status \(task.terminationStatus)", isError: true)
 			}
+		} catch {
+			appendLog("Failed to run launchctl load: \(error.localizedDescription)", isError: true)
 		}
 	}
 
 	func unloadAgentIfNeeded() {
-		guard launchAgentIsLoaded else { return }
+		guard launchAgentIsLoaded, !quittingAfterAgentLoad else { return }
+		unloadAgent()
+	}
+
+	private func unloadAgent() {
+		let task = Process()
+		task.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+		task.arguments = ["unload", agentPlistURL.path]
 		do {
-			try AODStore.agentService.unregister()
-			launchAgentIsLoaded = false
+			try task.run()
+			task.waitUntilExit()
 		} catch {
-			appendLog("Failed to unregister agent: \(error.localizedDescription)", isError: true)
+			appendLog("Failed to run launchctl unload: \(error.localizedDescription)", isError: true)
 		}
+
+		try? FileManager.default.removeItem(at: agentPlistURL)
+		launchAgentIsLoaded = false
 	}
 
 	// MARK: - Sleep/Wake Handling
